@@ -21,10 +21,25 @@ exports.register = async (req, res) => {
   }
 };
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
-  const user = await User.findOne({ username });
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+  try {
+    const { username, password } = req.body;
+
+    // Check if user exists
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    // Respond with user details
+    res.json({ userId: user._id, role: user.role });
+  } catch (error) {
+    console.error("Login Error:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
-  res.json({ userId: user._id, role: user.role });
 };
