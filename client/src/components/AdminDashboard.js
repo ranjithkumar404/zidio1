@@ -13,12 +13,18 @@ const AdminDashboard = () => {
 
   const loadUsers = async () => {
     const { data } = await fetchUsers();
-    setUsers(data);
+    console.log("data ",data);
+    
+    const filteredUsers = data.filter(user => user.role === "User");
+    console.log("filtered users ",filteredUsers);
+    
+    setUsers(filteredUsers);
   };
+  
 
   const loadAllTasks = async () => {
     try {
-        const { data } = await fetchTasks(); // Fetch all tasks (Admin sees everything)
+        const { data } = await fetchTasks(); 
        console.log("the tasks are ",data)
         setTasks(data);
     } catch (error) {
@@ -43,14 +49,14 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user"); // Clear user data
-    navigate("/login"); // Redirect to login page
+    localStorage.removeItem("user"); 
+    navigate("/login"); 
   };
 
   return (
     <div className="p-6">
        <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl">Admin Dashboard</h1>
+        <h1 className="text-2xl font-bold text-center">Admin Dashboard</h1>
         <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">
           Logout
         </button>
@@ -61,9 +67,9 @@ const AdminDashboard = () => {
         <input type="text" placeholder="Description" className="border p-2 mr-2" value={newTask.description} onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} />
 
         <select className="border p-2 mr-2" value={newTask.assignedTo} onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}>
-          <option value="">Select User</option>
-          {users.map(user => <option key={user._id} value={user._id}>{user.username}</option>)}
-        </select>
+  <option value="">Select User</option>
+  {users.map(user => <option key={user._id} value={user._id}>{user.username}</option>)}
+</select>
 
         <button onClick={handleAddTask} className="bg-green-500 text-white px-4 py-2 rounded">Add Task</button>
       </div>
