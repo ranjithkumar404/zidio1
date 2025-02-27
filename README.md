@@ -15,8 +15,7 @@ A simple task management web application built using the MERN stack (MongoDB, Ex
 ## Tech Stack
 - **Frontend**: React, Tailwind CSS
 - **Backend**: Node.js, Express.js, MongoDB
-- **Authentication**: JWT (JSON Web Tokens)
-- **Deployment**: GCP/AWS (if applicable)
+
 
 ## Installation
 
