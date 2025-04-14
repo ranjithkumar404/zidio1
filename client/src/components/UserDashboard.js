@@ -24,7 +24,7 @@ const UserDashboard = ({ user }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("user"); // Clear user data
-    navigate("/login"); // Redirect to login page
+    navigate("/"); // Redirect to login page
   };
 
   return (

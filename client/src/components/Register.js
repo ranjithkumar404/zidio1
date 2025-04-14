@@ -12,6 +12,10 @@ const Register = () => {
 
   const handleRegister = async () => {
     try {
+      if (!credentials.username || !credentials.password) {
+        alert("Please enter both username and password.");
+        return;
+      }
       await register(credentials);
       navigate("/");
     } catch (error) {

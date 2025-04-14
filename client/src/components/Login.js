@@ -9,6 +9,10 @@ const Login = ({ setUser }) => {
   const handleLogin = async () => {
     try {
       const { data } = await login(credentials);
+      if (!credentials.username || !credentials.password) {
+        alert("Please enter both username and password.");
+        return;
+      }
       localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
       navigate(data.role === "Admin" ? "/admin" : "/user");
