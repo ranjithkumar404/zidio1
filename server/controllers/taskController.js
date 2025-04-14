@@ -2,13 +2,13 @@ const Task = require('../models/Task');
 
 exports.createTask = async (req, res) => {
   try {
-    const { title, description, assignedTo, deadline } = req.body;
+    const { title, description, assignedTo, deadline, priority } = req.body;
 
     if (!title || !description || !assignedTo) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const task = new Task({ title, description, assignedTo, deadline });
+    const task = new Task({ title, description, assignedTo, deadline, priority });
     await task.save();
 
     res.status(201).json(task);
