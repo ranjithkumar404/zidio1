@@ -13,37 +13,60 @@ const Register = () => {
   const handleRegister = async () => {
     try {
       await register(credentials);
-      navigate("/"); // Redirect to login after successful registration
+      navigate("/");
     } catch (error) {
       console.error("Registration failed:", error.response?.data?.message);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl mb-4">Register</h2>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="mb-6">
+        <h1 className="text-4xl font-bold text-gray-700 text-center">Task Management System</h1>
+      </div>
+
+      <div className="p-8 rounded-xl shadow-md max-w-sm w-full border border-gray-200 bg-white">
+        <h2 className="text-3xl font-semibold text-center mb-6 text-gray-800">Register</h2>
+
         <input
           type="text"
           placeholder="Username"
-          className="border p-2 mb-2 w-full"
+          className="border border-gray-300 p-3 mb-4 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
         />
+
         <input
           type="password"
           placeholder="Password"
-          className="border p-2 mb-2 w-full"
+          className="border border-gray-300 p-3 mb-4 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
         />
+
         <select
-          className="border p-2 mb-2 w-full"
-          onChange={(e) => setCredentials({ ...credentials, role: e.target.value })}
+          className="border border-gray-300 p-3 mb-6 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={credentials.role}
+          onChange={(e) => setCredentials({ ...credentials, role: e.target.value })}
         >
           <option value="User">User</option>
           <option value="Admin">Admin</option>
         </select>
-        <button onClick={handleRegister} className="bg-green-500 text-white px-4 py-2 rounded">Register</button>
+
+        <button
+          onClick={handleRegister}
+          className="bg-green-600 text-white py-3 px-6 w-full rounded-lg hover:bg-green-700 transition duration-300"
+        >
+          Register
+        </button>
+
+        <div className="mt-6 text-center">
+          <p className="text-gray-600">Already have an account?</p>
+          <button
+            onClick={() => navigate("/")}
+            className="text-blue-600 hover:underline"
+          >
+            Login here
+          </button>
+        </div>
       </div>
     </div>
   );
