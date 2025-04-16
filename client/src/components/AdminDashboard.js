@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { fetchUsers, fetchTasks, addTask, deleteTask } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AdminDashboard = () => {
   const [tasks, setTasks] = useState([]);
@@ -14,9 +16,13 @@ const AdminDashboard = () => {
   }, []);
 
   const loadUsers = async () => {
-    const { data } = await fetchUsers();
-    const filteredUsers = data.filter(user => user.role === "User");
-    setUsers(filteredUsers);
+    try {
+      const { data } = await fetchUsers();
+      const filteredUsers = data.filter(user => user.role === "User");
+      setUsers(filteredUsers);
+    } catch (error) {
+      toast.error("Failed to load users.");
+    }
   };
 
   const loadAllTasks = async () => {
@@ -25,23 +31,37 @@ const AdminDashboard = () => {
       setTasks(data);
     } catch (error) {
       console.error("Error fetching tasks:", error.response?.data || error.message);
+      toast.error("Error fetching tasks.");
     }
   };
 
   const handleAddTask = async () => {
-    if (!newTask.assignedTo) {
-      alert("Please select a user to assign the task.");
+    const { title, description, assignedTo, priority } = newTask;
+
+    if (!title.trim() || !description.trim() || !assignedTo || !priority) {
+      toast.error("Please fill in all the fields: Title, Description, Assigned User, and Priority.");
       return;
     }
 
-    await addTask(newTask);
-    setNewTask({ title: "", description: "", assignedTo: "", priority: "Low" });
-    loadAllTasks();
+    try {
+      await addTask(newTask);
+      toast.success("Task added successfully!");
+      setNewTask({ title: "", description: "", assignedTo: "", priority: "Low" });
+      loadAllTasks();
+    } catch (error) {
+      console.error("Error adding task:", error.response?.data || error.message);
+      toast.error("Failed to add task. Please try again.");
+    }
   };
 
   const handleDeleteTask = async (id) => {
-    await deleteTask(id);
-    loadAllTasks();
+    try {
+      await deleteTask(id);
+      toast.success("Task deleted successfully!");
+      loadAllTasks();
+    } catch (error) {
+      toast.error("Failed to delete task.");
+    }
   };
 
   const handleLogout = () => {
@@ -136,6 +156,9 @@ const AdminDashboard = () => {
           ))}
         </ul>
       </div>
+
+      {/* ✅ Toast container */}
+      <ToastContainer position="top-center" autoClose={3000} />
     </div>
   );
 };

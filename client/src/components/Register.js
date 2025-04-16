@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { register } from "../services/api";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Register = () => {
   const [credentials, setCredentials] = useState({
@@ -11,15 +13,17 @@ const Register = () => {
   const navigate = useNavigate();
 
   const handleRegister = async () => {
+    if (!credentials.username || !credentials.password) {
+      toast.error("Please enter both username and password.");
+      return;
+    }
+
     try {
-      if (!credentials.username || !credentials.password) {
-        alert("Please enter both username and password.");
-        return;
-      }
       await register(credentials);
-      navigate("/");
+      toast.success("Registration successful!", { onClose: () => navigate("/") });
     } catch (error) {
       console.error("Registration failed:", error.response?.data?.message);
+      toast.error("Registration failed. Try a different username.");
     }
   };
 
@@ -72,6 +76,9 @@ const Register = () => {
           </button>
         </div>
       </div>
+
+      {/* ✅ Toast container */}
+      <ToastContainer position="top-center" autoClose={3000} />
     </div>
   );
 };
