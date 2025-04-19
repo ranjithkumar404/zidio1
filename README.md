@@ -7,15 +7,17 @@ A simple task management web application built using the MERN stack (MongoDB, Ex
   - Create, assign, update, and delete tasks.
   - View all tasks.
   - Manage users.
-  
+  - View task status (completed/pending).
+
 - **User**:
   - View assigned tasks.
   - Mark tasks as completed.
+  - Comment on tasks.
+  - Get feedback if no tasks are assigned (e.g., no pie chart yet).
 
 ## Tech Stack
 - **Frontend**: React, Tailwind CSS
 - **Backend**: Node.js, Express.js, MongoDB
-
 
 ## Installation
 
@@ -62,10 +64,11 @@ npm start
 - `GET /api/tasks/:userId` - Fetch tasks assigned to a specific user
 - `PUT /api/tasks/:id` - Update task details
 - `DELETE /api/tasks/:id` - Delete a task (admin only)
+- `POST /api/tasks/:id/comments` - Add a comment to a task
 
 ## Usage
 1. Register as an admin or user.
 2. Admin assigns tasks to users.
 3. Users can complete their assigned tasks.
 4. Admins can manage tasks and users.
-
+5. Users will see a friendly message when no tasks are assigned yet.
