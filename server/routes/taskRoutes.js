@@ -1,5 +1,5 @@
 const express = require("express");
-const { createTask, getTasks, getUserTasks, updateTask, deleteTask } = require("../controllers/taskController");
+const { createTask, getTasks, getUserTasks, updateTask, deleteTask , addCommentToTask} = require("../controllers/taskController");
 
 const router = express.Router();
 
@@ -18,4 +18,5 @@ router.put("/:id", updateTask);
 // ✅ Admin deletes a task
 router.delete("/:id", deleteTask);
 
+router.post("/:taskId/comment", addCommentToTask);
 module.exports = router;

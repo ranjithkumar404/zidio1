@@ -18,24 +18,30 @@ exports.createTask = async (req, res) => {
 };
 
 // ✅ Fetch all tasks with assigned user details
+// ✅ Fetch all tasks with assigned user details + comment authors
 exports.getTasks = async (req, res) => {
   try {
-    const tasks = await Task.find().populate("assignedTo", "username");
+    const tasks = await Task.find()
+      .populate("assignedTo", "username")
+      .populate("comments.author", "username"); // ✅ Add this line
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
 };
 
-// ✅ Fetch tasks for a specific user
+// ✅ Fetch tasks for a specific user + comment authors
 exports.getUserTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({ assignedTo: req.params.userId }).populate("assignedTo", "username");
+    const tasks = await Task.find({ assignedTo: req.params.userId })
+      .populate("assignedTo", "username")
+      .populate("comments.author", "username"); // ✅ Add this line
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: "Error fetching user tasks", error });
   }
 };
+
 
 // ✅ Update task
 exports.updateTask = async (req, res) => {
@@ -59,5 +65,33 @@ exports.deleteTask = async (req, res) => {
     res.json({ message: "Task deleted" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting task", error });
+  }
+};
+
+// Add comment to a task
+exports.addCommentToTask = async (req, res) => {
+  try {
+    const { text, author } = req.body;
+    const { taskId } = req.params;
+
+    if (!text || !author) {
+      return res.status(400).json({ message: "Comment text and author are required" });
+    }
+
+    const task = await Task.findById(taskId);
+    if (!task) return res.status(404).json({ message: "Task not found" });
+
+    // Push new comment
+    task.comments.push({ text, author });
+    await task.save();
+
+    // Repopulate all fields for return
+    const updatedTask = await Task.findById(taskId)
+      .populate("assignedTo", "username")
+      .populate("comments.author", "username");
+
+    res.status(200).json(updatedTask);
+  } catch (error) {
+    res.status(500).json({ message: "Error adding comment", error });
   }
 };
