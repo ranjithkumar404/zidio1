@@ -10,6 +10,7 @@ const Register = () => {
     password: "",
     role: "User",
   });
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async () => {
@@ -19,16 +20,27 @@ const Register = () => {
     }
 
     try {
+      setIsLoading(true);
       await register(credentials);
-      toast.success("Registration successful!", { onClose: () => navigate("/") });
+      toast.success("Registration successful!", {
+        onClose: () => navigate("/"),
+      });
     } catch (error) {
       console.error("Registration failed:", error.response?.data?.message);
       toast.error("Registration failed. Try a different username.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4 relative">
+      {isLoading && (
+        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+          <div className="w-16 h-16 border-4 border-green-500 border-dashed rounded-full animate-spin"></div>
+        </div>
+      )}
+
       <div className="mb-6">
         <h1 className="text-4xl font-bold text-gray-700 text-center">Task Management System</h1>
       </div>
@@ -77,7 +89,6 @@ const Register = () => {
         </div>
       </div>
 
-      {/* ✅ Toast container */}
       <ToastContainer position="top-center" autoClose={3000} />
     </div>
   );
