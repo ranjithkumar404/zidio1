@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { fetchUsers, fetchTasks, addTask, deleteTask } from "../services/api";
+import {
+  fetchUsers,
+  fetchTasks,
+  addTask,
+  deleteTask,
+  addComment,
+} from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -15,10 +21,14 @@ const AdminDashboard = () => {
   });
   const [sortByPriority, setSortByPriority] = useState(false);
   const [sortByStatus, setSortByStatus] = useState(false);
-
+  const [commentTexts, setCommentTexts] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("user"));
+    if (userData) setCurrentUser(userData);
+
     loadUsers();
     loadAllTasks();
   }, []);
@@ -75,6 +85,34 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleAddComment = async (taskId, commentText) => {
+    if (!commentText.trim()) {
+      toast.error("Please write a comment.");
+      return;
+    }
+
+    const commentData = {
+      text: commentText,
+      author: currentUser.userId,
+    };
+
+    try {
+      const response = await addComment(taskId, commentData);
+      const updatedTask = response.data;
+
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task._id === taskId ? updatedTask : task
+        )
+      );
+
+      setCommentTexts((prev) => ({ ...prev, [taskId]: "" }));
+      toast.success("Comment added!");
+    } catch (error) {
+      toast.error("Failed to add comment.");
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("user");
     navigate("/");
@@ -108,7 +146,7 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      {/* ✅ Add Task Section */}
+      {/* Add Task */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Add New Task</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -156,29 +194,26 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* ✅ Task List Section with Toggle Sort */}
+      {/* Tasks */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-gray-800">Tasks List</h2>
           <div className="flex gap-3">
             <button
               onClick={() => setSortByPriority((prev) => !prev)}
-              className={`px-4 py-2 rounded-lg transition ${
-                sortByPriority ? "bg-blue-600" : "bg-blue-500"
-              } text-white`}
+              className={`px-4 py-2 rounded-lg transition ${sortByPriority ? "bg-blue-600" : "bg-blue-500"} text-white`}
             >
               {sortByPriority ? "Remove Priority Sort" : "Sort by Priority"}
             </button>
             <button
               onClick={() => setSortByStatus((prev) => !prev)}
-              className={`px-4 py-2 rounded-lg transition ${
-                sortByStatus ? "bg-purple-600" : "bg-purple-500"
-              } text-white`}
+              className={`px-4 py-2 rounded-lg transition ${sortByStatus ? "bg-purple-600" : "bg-purple-500"} text-white`}
             >
               {sortByStatus ? "Remove Status Sort" : "Sort by Status"}
             </button>
           </div>
         </div>
+
         <ul className="space-y-4">
           {getSortedTasks().map((task) => (
             <li
@@ -189,7 +224,7 @@ const AdminDashboard = () => {
                 <div>
                   <h3 className="text-xl font-bold text-gray-800">{task.title}</h3>
                   <p className="text-gray-600">{task.description}</p>
-                  <p className="text-gray-500">Assigned to: {task.assignedTo.username}</p>
+                  <p className="text-gray-500">Assigned to: {task.assignedTo?.username || "Unknown"}</p>
                   <p className="text-gray-500">
                     Status:{" "}
                     {task.status === "Pending" ? (
@@ -207,12 +242,54 @@ const AdminDashboard = () => {
                   Delete
                 </button>
               </div>
+
+              {/* Comments */}
+              {task.comments?.length > 0 && (
+                <div className="mt-4 pl-4 border-l-2 border-gray-200">
+                  <h4 className="font-semibold text-gray-700 mb-2">Comments:</h4>
+                  {task.comments
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                    .map((comment, idx) => (
+                      <div key={idx} className="mb-2">
+                        <p className="text-gray-800">
+                          <strong>{comment?.author?.username ?? "Unknown"}:</strong>
+                          {comment.text}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          {new Date(comment.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              {/* Add Comment */}
+              <div className="mt-4">
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  className="border p-2 rounded-lg w-full"
+                  value={commentTexts[task._id] || ""}
+                  onChange={(e) =>
+                    setCommentTexts((prev) => ({
+                      ...prev,
+                      [task._id]: e.target.value,
+                    }))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleAddComment(task._id, commentTexts[task._id]);
+                    }
+                  }}
+                />
+              </div>
             </li>
           ))}
         </ul>
       </div>
 
       <ToastContainer position="top-center" autoClose={3000} />
+
     </div>
   );
 };

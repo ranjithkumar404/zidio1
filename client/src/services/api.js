@@ -25,3 +25,5 @@ export const updateTask = (id, data) => API.put(`/tasks/${id}`, data);
 export const deleteTask = (id) => API.delete(`/tasks/${id}`);
 export const register = (data) => API.post("/auth/register", data);
 export const fetchUsers = () => API.get("/users");
+export const addComment = (taskId, commentData) =>
+  API.post(`/tasks/${taskId}/comment`, commentData);
