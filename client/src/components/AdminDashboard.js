@@ -5,18 +5,26 @@ import {
   addTask,
   deleteTask,
   addComment,
+  addMeeting,
+  fetchMeetings
 } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from "chart.js";
-
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 ChartJS.register(Title, Tooltip, Legend, ArcElement);
 
 const AdminDashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [meetingTitle, setMeetingTitle] = useState('');
+  const [meetingDesc, setMeetingDesc] = useState('');
+  const [meetings, setMeetings] = useState([]);
+
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -27,6 +35,7 @@ const AdminDashboard = () => {
   const [sortByStatus, setSortByStatus] = useState(false);
   const [commentTexts, setCommentTexts] = useState({});
   const [currentUser, setCurrentUser] = useState(null);
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,7 +44,22 @@ const AdminDashboard = () => {
 
     loadUsers();
     loadAllTasks();
+    loadMeetings();
   }, []);
+
+
+  const loadMeetings = async () => {
+    try {
+      
+      const data  = await fetchMeetings();
+      console.log("now its fetched",data);
+      
+      setMeetings(data);  // This will update the meetings state
+    } catch (error) {
+      toast.error("Failed to load meetings.");
+    }
+  };
+
 
   const loadUsers = async () => {
     try {
@@ -46,6 +70,37 @@ const AdminDashboard = () => {
       toast.error("Failed to load users.");
     }
   };
+  
+  const handleScheduleMeeting = async () => {
+    console.log("entered1");
+    
+    if (!meetingTitle || !meetingDesc || selectedUsers.length === 0 || !selectedDate) {
+      toast.error('Please fill all meeting fields');
+      return;
+    }
+  console.log("will send data");
+  
+    try {
+      await addMeeting({
+        title: meetingTitle,
+        description: meetingDesc,
+        date: selectedDate,
+        users: selectedUsers,  // ✅ match backend expected field name
+      });
+  console.log("sent!");
+  
+      toast.success('Meeting scheduled successfully!');
+      const { data } = await fetchMeetings();
+      console.log("now its fetched",data);
+      setMeetingTitle('');
+      setMeetingDesc('');
+      setSelectedUsers([]);
+      setSelectedDate(new Date()); // reset calendar too if needed
+    } catch (err) {
+      toast.error('Failed to schedule meeting');
+    }
+  };
+  
 
   const loadAllTasks = async () => {
     try {
@@ -248,6 +303,95 @@ const AdminDashboard = () => {
   <div className="w-full max-w-[400px] mx-auto"> {/* Set max-width for the chart */}
     <Pie data={pieData} options={pieOptions} />
   </div>
+</div>
+
+<div className="m-2">
+  {/* Meeting Scheduler */}
+  <div className="bg-white shadow-md rounded-2xl p-4 mb-6">
+    <h2 className="text-xl font-semibold mb-4">Schedule Meeting</h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label className="block mb-1 font-medium">Select Date</label>
+        <Calendar
+          onChange={setSelectedDate}
+          value={selectedDate}
+          minDate={new Date()}
+          className="rounded border p-2"
+        />
+      </div>
+      <div className="space-y-3">
+        <div>
+          <label className="block mb-1 font-medium">Meeting Title</label>
+          <input
+            type="text"
+            value={meetingTitle}
+            onChange={(e) => setMeetingTitle(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 font-medium">Description</label>
+          <textarea
+            value={meetingDesc}
+            onChange={(e) => setMeetingDesc(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+          ></textarea>
+        </div>
+        <div>
+          <label className="block mb-1 font-medium">Select Users</label>
+          <div className="border rounded px-3 py-2 max-h-32 overflow-y-auto space-y-2">
+            {users.map((user) => (
+              <label key={user._id} className="flex items-center space-x-2">
+                <input
+  type="checkbox"
+  value={user._id}
+  checked={selectedUsers.includes(user._id)}
+  onChange={(e) => {
+    const checked = e.target.checked;
+    const userId = e.target.value;
+    setSelectedUsers((prev) =>
+      checked ? [...prev, userId] : prev.filter((id) => id !== userId)
+    );
+  }}
+/>
+                <span>{user.username}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+        <button
+          onClick={handleScheduleMeeting}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Schedule Meeting
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {/* Scheduled Meetings Display */}
+   <div className="bg-white shadow-md rounded-2xl p-4">
+    <h2 className="text-xl font-semibold mb-4">Scheduled Meetings</h2>
+    {meetings.length === 0 ? (
+      <p className="text-gray-600">No meetings scheduled yet.</p>
+    ) : (
+      <ul className="space-y-4">
+        {meetings.map((meeting) => (
+          <li key={meeting._id} className="border rounded p-4">
+            <h3 className="text-lg font-bold">{meeting.title}</h3>
+            <p className="text-sm text-gray-700 mb-1">{meeting.description}</p>
+            <p className="text-sm text-gray-500 mb-1">
+              Date: {new Date(meeting.date).toLocaleDateString()}
+            </p>
+            <p className="text-sm text-gray-500">
+              Participants:{" "}
+              {meeting.users.map((u) => u.username).join(", ")}
+            </p>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div> 
 </div>
 
 

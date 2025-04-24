@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchUserTasks, updateTask, addComment } from "../services/api";
+import { fetchUserTasks, updateTask, addComment,fetchMeetings } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -22,11 +22,32 @@ const UserDashboard = ({ user }) => {
   const [tasks, setTasks] = useState([]);
   const navigate = useNavigate();
 
+  const [meetings, setMeetings] = useState([]);
+
   useEffect(() => {
     if (user?.userId) {
       loadTasks();
+      loadMeetings();
     }
   }, [user]);
+
+  const loadMeetings = async () => {
+    try {
+      const data = await fetchMeetings();
+    
+      
+      // Assuming each meeting has a `participants` array of userIds
+      const userMeetings = data.filter(meeting =>
+        meeting.users?.some(u => u._id === user.userId)
+      );
+      
+      
+      
+      setMeetings(userMeetings);
+    } catch (error) {
+      toast.error("Failed to load meetings.");
+    }
+  };
 
   const loadTasks = async () => {
     try {
@@ -105,6 +126,9 @@ const UserDashboard = ({ user }) => {
         </button>
       </div>
 
+
+
+
       {/* Task Status Breakdown Pie Chart */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Task Status Breakdown</h2>
@@ -113,6 +137,26 @@ const UserDashboard = ({ user }) => {
         </div>
       </div>
 
+
+{/* Scheduled Meetings */}
+<div className="bg-white p-6 rounded-lg shadow-md mb-6">
+  <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Scheduled Meetings</h2>
+  {meetings.length === 0 ? (
+    <p className="text-gray-600">No upcoming meetings scheduled.</p>
+  ) : (
+    <ul className="space-y-3">
+      {meetings.map((meeting, index) => (
+        <li key={index} className="border p-4 rounded-lg bg-gray-50">
+          <p className="text-lg font-medium text-gray-700">Topic: {meeting.title}</p>
+          <p className="text-sm text-gray-500">
+            Date: {new Date(meeting.date).toLocaleDateString()} | Time:{" "}
+            {new Date(meeting.date).toLocaleTimeString()}
+          </p>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
       {/* Tasks List */}
       {tasks.length === 0 ? (
         <div className="text-center text-gray-600 mt-6">
